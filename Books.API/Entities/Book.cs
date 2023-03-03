@@ -26,5 +26,13 @@ namespace Books.API.Entities
             Title = title;
             Description = description;
         }
+        // We could perhaps allow other pieces of code to construct this object in this manner.
+        // And all for AutoMapper();
+        //public Book(Guid authorId, string title, string? description)
+        //{
+        //    AuthorId = authorId;
+        //    Title = title;
+        //    Description = description;
+        //}
     }
 }

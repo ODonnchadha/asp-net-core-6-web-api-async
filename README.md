@@ -103,4 +103,53 @@
     - IMplement filters for mapping.
 
 - ASYNCHRONOUSLY MANIPULATING RESOURCES:
+  - Creating a resource.
+    - Use only if you need a special value generator:
+    ```csharp
+      public async Task AddBookAsync(Book book);
+    ```
+  - Supporting bulk inserts.
+    - Ten seperate requests to api/books:
+      - Overhead. Performance loss. Overuse of threads.
+    - Bulk insert:
+      - Performance increase. Higher availabliltity of threads. (Beter scalability.)
+    - e.g.: POST api/bookcollections
+    - Alternative approach:
+      - A set of resources.
+      - A set of resources and associated operations on them.
+      - This will bring the API back to the lower levels of the Richardson Maturoty Model.
+  - SUMMARY:
+    - Usa async for I/O bound work. Adding an entry to the context isn't I/O-bound work.
+  
+- SUPPORTING ASYNCHRONOUS STREAMING:
+  - A few words on streaming. Goal: Small blcoks instead of all at once.
+    - A method of transmitting or receiving data over a netwrok as a steady, continuous flow instead of all at once.
+      - Video. Audio. Also useful when working with large sets of data.
+  - Synchronous versus asynchronous iteration.
+    - System.Collections.IEnumerable => System.Collections.IEnumerator.
+      ```csharp
+        IEnumerator<int> e = collection.GetEnumerator();
+        while (e.MoveNext())
+        {
+          var i = e.Current;
+        }
+      ```
+    - Iterator methods are methods that create a source for iteration.
+    - The await operator can be used insode a foreach statement.
+      ```csharp
+        foreach (T intem in collection)
+        {
+          await SomeOperation();
+        }
+      ```
+    - All iteration used to be synchronous. Iteration. Operation. Etc.
+    - Next iteration can be allowed before the first operation is completed. (Improved in .NET Core 6.)
+  - Supporting streaming with IAsyncEnumerable<T>
+    - Provides the ability to provide over a set of values asynchronously.
+      - System.Text.Json supports streaming, which, combined with IAsyncEnumerable<T>, can result in objects being streamed to the consumer.
+  - SUMMARY:
+    - The async iterator approach leads to threads getting freed up earlier and thus to better scalable streaming.
+    - Enabling components. System.Text.Json. IAsyncEnumerable<T>.
+
+- DEALING WITH ASYNCHRONOUS SERVICE INTEGRATIONS AND SUPPORTING CANCELLATION:
   - 
