@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc;
+using Books.API.Models.External;
+using Books.API.Models;
 
 namespace Books.API.Filters
 {
-    public class BooksResultFilter : IAsyncResultFilter
+    public class BookWithCoversResultFilter : IAsyncResultFilter
     {
         private readonly IMapper mapper;
-
-        public BooksResultFilter(IMapper mapper) => this.mapper = mapper;
+        public BookWithCoversResultFilter(IMapper mapper) => this.mapper = mapper;
         public async Task OnResultExecutionAsync(
             ResultExecutingContext context, ResultExecutionDelegate next)
         {
@@ -25,7 +26,13 @@ namespace Books.API.Filters
                 return;
             }
 
-            result.Value = mapper.Map<IEnumerable<Models.Book>>(result.Value);
+            var (book, covers) = 
+                ((Entities.Book book, IEnumerable<Models.External.BookCover> covers))result.Value;
+
+            // Map multiple objects into one.
+            var mappedBook = mapper.Map<BookWithCovers>(book);
+            result.Value = mapper.Map(covers, mappedBook);
+
             await next();
         }
     }

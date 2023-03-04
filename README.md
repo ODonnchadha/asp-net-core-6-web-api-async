@@ -152,4 +152,22 @@
     - Enabling components. System.Text.Json. IAsyncEnumerable<T>.
 
 - DEALING WITH ASYNCHRONOUS SERVICE INTEGRATIONS AND SUPPORTING CANCELLATION:
-  - 
+  - Web API into another Web API. Esp. microservices. Integrating with an external service.
+  - Dealing with multiple service calls. Asynchronously. Parallel. Supporting Task cancellation.
+    - Using async & await all the way through. Threads potentially freed up. & scalabilitity.
+    - Parallelism: At least two threads are executing simultaneously. CPU has multiple cores.
+    - This code will block threads. Negative impact on performance due to thread exhaustion. 
+    - Negative impact. (Can be used on a client.)
+      ```csharp
+        Parallel.ForEach(urls, url => client.GetAsync(url));
+      ```
+    - Likewise problem. Not async. Bad for scaleability. *ALWAYS* use async/await all the way through for the best protection.
+      ```csharp
+        var tsks = new List<Task<HttpResponseMessage>>();
+        foreach (var url in urls
+        {
+          tsks.Add(client.GetAsync(url));
+        });
+        Task.WaitAll(tsks.ToArray());
+      ```
+  - Gracefuly handle exceptions.

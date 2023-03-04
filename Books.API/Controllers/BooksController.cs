@@ -1,20 +1,27 @@
 ﻿using AutoMapper;
+using Books.API.Entities;
 using Books.API.Filters;
 using Books.API.Interfaces.Repositories;
+using Books.API.Interfaces.Services;
 using Books.API.Models;
+using Books.API.Models.External;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace Books.API.Controllers
 {
     [ApiController(), Route("api")]
     public class BooksController : ControllerBase
     {
+        private readonly IBookCoverService service;
         private readonly IBookRepository repository;
         private readonly IMapper mapper;
-        public BooksController(IBookRepository repository, IMapper mapper)
+        public BooksController(
+            IBookCoverService service, IBookRepository repository, IMapper mapper)
         {
             this.mapper = mapper;
             this.repository = repository;
+            this.service = service;
         }
 
         [HttpGet("books")]
@@ -22,17 +29,16 @@ namespace Books.API.Controllers
         public async Task<IActionResult> GetBooks()
         {
             var entities = await repository.GetBooksAsync();
-
             return Ok(entities);
         }
 
         [HttpGet("stream")]
-        public async IAsyncEnumerable<Book> StreamBooks()
+        public async IAsyncEnumerable<Models.Book> StreamBooks()
         {
             await foreach(var b in repository.GetBooksAsAsyncEnumerable())
             {
                 await Task.Delay(500);
-                yield return mapper.Map<Book>(b);
+                yield return mapper.Map<Models.Book>(b);
             }
         }
 
@@ -51,7 +57,7 @@ namespace Books.API.Controllers
         }
 
         [HttpGet("books/{id}",Name ="GET_BOOK")]
-        [TypeFilter(typeof(BookResultFilter))]
+        [TypeFilter(typeof(BookWithCoversResultFilter))]
         public async Task<IActionResult> GetBook(Guid id)
         {
             var entity = await repository.GetBookAsync(id);
@@ -61,7 +67,26 @@ namespace Books.API.Controllers
                 return NotFound();
             }
 
-            return Ok(entity);
+            // e.g.:
+            var bookCover = await service.GetBookCoverAsync(id);
+            var bookCoversProcessOneByOne = 
+                await service.GetBookCoversProcessOneByOneAsync(id);
+            var bookCoversProcessAfterWaitForAll = 
+                await service.GetBookCoversProcessAfterWaitForAllAsync(id);
+
+            // A book with covers.
+            // a.
+            //var bag = new Tuple<Entities.Book, IEnumerable<BookCover>>(
+            //    entity, bookCoversProcessAfterWaitForAll);
+            //bag.Item1; bag.Item2;
+
+            // b.
+            //(Entities.Book book, IEnumerable<BookCover> covers) bag = 
+            //    (entity, bookCoversProcessAfterWaitForAll);
+
+            // c. NOTE: Passing multiple objects.
+            // return Ok();
+            return Ok((book: entity, covers: bookCoversProcessAfterWaitForAll));
         }
     }
 }
