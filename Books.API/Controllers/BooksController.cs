@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
-using Books.API.Entities;
 using Books.API.Filters;
 using Books.API.Interfaces.Repositories;
 using Books.API.Interfaces.Services;
 using Books.API.Models;
-using Books.API.Models.External;
 using Microsoft.AspNetCore.Mvc;
-using System;
 
 namespace Books.API.Controllers
 {
@@ -58,7 +55,7 @@ namespace Books.API.Controllers
 
         [HttpGet("books/{id}",Name ="GET_BOOK")]
         [TypeFilter(typeof(BookWithCoversResultFilter))]
-        public async Task<IActionResult> GetBook(Guid id)
+        public async Task<IActionResult> GetBook(Guid id, CancellationToken token)
         {
             var entity = await repository.GetBookAsync(id);
 
@@ -69,8 +66,11 @@ namespace Books.API.Controllers
 
             // e.g.:
             var bookCover = await service.GetBookCoverAsync(id);
+
+            // Using a CancellationTokenSource:
             var bookCoversProcessOneByOne = 
-                await service.GetBookCoversProcessOneByOneAsync(id);
+                await service.GetBookCoversProcessOneByOneAsync(id, token);
+
             var bookCoversProcessAfterWaitForAll = 
                 await service.GetBookCoversProcessAfterWaitForAllAsync(id);
 
@@ -83,6 +83,14 @@ namespace Books.API.Controllers
             // b.
             //(Entities.Book book, IEnumerable<BookCover> covers) bag = 
             //    (entity, bookCoversProcessAfterWaitForAll);
+
+
+            // e.g.:
+            for (int i = 0; i < 1000; i++)
+            {
+                // if (token.IsCancellationRequested)
+                // token.ThrowIfCancellationRequested();
+            }
 
             // c. NOTE: Passing multiple objects.
             // return Ok();

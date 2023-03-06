@@ -170,4 +170,24 @@
         });
         Task.WaitAll(tsks.ToArray());
       ```
+      - Task cancellation. Why support?
+      - Frees up threads. Improves scalability. Frees up CPU resources (computational-bound.)
+    - CancellationTokenSource: A lightweight value type passed to one or more listeners, typically as a method parameter.
+      - NOTE: Quick page refreshes should simulate a client cancellation.
   - Gracefuly handle exceptions.
+    - Back in the day:
+      - a try/catch block surrounding Task.Run() would not catch exceptions that occured inside of that statement.
+      - When working with multiple tasks, exceptions would be wrapped in an AggregateException.
+    - Using async/await all the way through solves exception handling issues.
+  - Handling exception in async code:
+    - Catch the exception close to where it occured with a try/catch block.
+    - Write an exception filter
+    - Configure the ExceptionHandler middleware.
+    - NOTE: Important to remember: You should catch an OperationCancelledException. (TaskCancelledException devives fro it.)
+  - SUMMARY:
+    - Execute multiple tasks asynchronously, not in parallel. async await. await WhenAll(). await.WhenAny()
+    - CancellationTokenSource & cancellation tokens:
+      - Tokens that are action parameters will receive a notification whe  the consumer navigates away.
+
+- ADDITIONAL RETURN TYPES & AVOIDING COMMON PITFALLS:
+  - Legacy libraries. Tempting to offload *that* code to the background.

@@ -1,6 +1,7 @@
 ﻿using Books.API.Interfaces.Services;
 using Books.API.Models.External;
 using System;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Books.API.Services
@@ -68,35 +69,42 @@ namespace Books.API.Services
             return covers;
         }
 
-        public async Task<IEnumerable<BookCover>> GetBookCoversProcessOneByOneAsync(Guid id)
+        public async Task<IEnumerable<BookCover>> GetBookCoversProcessOneByOneAsync(
+            Guid id, CancellationToken token)
         {
             var client = factory.CreateClient();
-
             var covers = new List<BookCover>();
             var urls = new[]
             {
                 $"{URL_ROOT}/api/bookcovers/{id}-aaa",
-                $"{URL_ROOT}/api/bookcovers/{id}-bbb",
+                $"{URL_ROOT}/api/bookcovers/{id}-bbb?returnFault=true",
                 $"{URL_ROOT}/api/bookcovers/{id}-ccc",
                 $"{URL_ROOT}/api/bookcovers/{id}-ddd",
                 $"{URL_ROOT}/api/bookcovers/{id}-eee",
                 $"{URL_ROOT}/api/bookcovers/{id}-fff"
             };
 
-            foreach(var url in urls )
+            using (var cancel = new CancellationTokenSource())
             {
-                var response = await client.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
+                using (var link = CancellationTokenSource.CreateLinkedTokenSource(cancel.Token, token))
                 {
-                    // await will pause execution. Urls will process one-by-one in sort order.
-                    var c = JsonSerializer.Deserialize<BookCover>(
-                        await response.Content.ReadAsStringAsync(),
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    if (null != c)
+                    foreach (var url in urls)
                     {
-                        covers.Add(c);
+                        var response = await client.GetAsync(url, link.Token);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            // await will pause execution. Urls will process one-by-one in sort order.
+                            var c = JsonSerializer.Deserialize<BookCover>(
+                                await response.Content.ReadAsStringAsync(link.Token),
+                                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                            if (null != c)
+                            {
+                                covers.Add(c);
+                            }
+                        }
+                        else { cancel.Cancel(); }
                     }
                 }
             }
