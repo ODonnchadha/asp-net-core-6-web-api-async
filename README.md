@@ -191,3 +191,32 @@
 
 - ADDITIONAL RETURN TYPES & AVOIDING COMMON PITFALLS:
   - Legacy libraries. Tempting to offload *that* code to the background.
+  - Since C# 7.0, any type that has an accessable GetAwaiter() method.
+    - Returned object must implement System.Runtime.CompilerServices.ICriticalNotifyCompletion.
+    - Task and Task<T> are reference types. Unwanted memory allocation. Thanks to GetAwaiter(), a value type can be created instead.
+    - ValueTask<T>. A struct that wraps a Task<T> and a result type of T.
+      - If ValueTask<T> is completed the underlyig result would be used. Otherwise the task is allocated.
+      - When the async method runs asynchronously, it's bad for performance. State machine needs to keep more data.
+      - When the async method runs synchronously, it's good for performance.
+  - Offloading legacy code to a background thread:
+    - Legacy code, like a long-running algorithm, is computational-bound code.
+    - This can be offloaded to a background thread using await async. Can run concurrently.
+  - PITFALL NUMBER ONE: Using Task.Run() on the server.
+    - I/O -bound work. ASP.NEWT Core is not optimized for Task.Run(). Creates an unoptimized thread. Causes overhead.
+      - Multiple calls: Threads will not be freed up on time. Less threads will be available. Scalabilitity will go down.
+    - Use code like this for client code. The UI will remain responsive.
+  - PITFALL NUMBER TWO: Blocking async code.
+    - Task.Wait() and Task.Result() blocks the calling thread. Thread is not returned to the thread pool.
+    - ASP.NET Core does not have a synchronization context. (The old ASP.NET does.)
+    - Modifying shared state. e.g.: BookRepository.
+    - Not thread safe. Manipulating lists, for example, on a different thread.
+      ```csharp
+        var t1 = download(1, ref list);
+        var t2 = download(2 ref list);
+        await Task.WhenAll(t1, t1);
+      ```
+  - PITFALL THREE: Modifying shared state.
+    - Different threads might manipulate the same state at the same time. Correctness cannot be guarenteed.
+  - SUMMARY:
+    - Notable additional return types. GetAwaiter(). Value types, for example, are a struct. IASyncEnumerable<T>.
+    - Don't use Task.Run() on the server. Don't block async code. Do not modify shared state on different threads.

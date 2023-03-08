@@ -3,6 +3,7 @@ using Books.API.Filters;
 using Books.API.Interfaces.Repositories;
 using Books.API.Interfaces.Services;
 using Books.API.Models;
+using Books.Legacy;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Books.API.Controllers
@@ -12,10 +13,12 @@ namespace Books.API.Controllers
     {
         private readonly IBookCoverService service;
         private readonly IBookRepository repository;
+        private readonly ILogger<BooksController> logger;
         private readonly IMapper mapper;
         public BooksController(
-            IBookCoverService service, IBookRepository repository, IMapper mapper)
+            IBookCoverService service, IBookRepository repository, ILogger<BooksController> logger, IMapper mapper)
         {
+            this.logger = logger;
             this.mapper = mapper;
             this.repository = repository;
             this.service = service;
@@ -28,6 +31,15 @@ namespace Books.API.Controllers
             var entities = await repository.GetBooksAsync();
             return Ok(entities);
         }
+
+        //[HttpGet("books")]
+        //[TypeFilter(typeof(BooksResultFilter))]
+        //public IActionResult GetBooks_BadCode()
+        //{
+        //    // This will block threads.
+        //    var entities = repository.GetBooksAsync().Result;
+        //    return Ok(entities);
+        //}
 
         [HttpGet("stream")]
         public async IAsyncEnumerable<Models.Book> StreamBooks()
@@ -57,6 +69,10 @@ namespace Books.API.Controllers
         [TypeFilter(typeof(BookWithCoversResultFilter))]
         public async Task<IActionResult> GetBook(Guid id, CancellationToken token)
         {
+            logger.LogInformation(
+                $"Thread when entering GetBook() {Thread.CurrentThread.ManagedThreadId}.");
+
+
             var entity = await repository.GetBookAsync(id);
 
             if (entity == null)
@@ -74,6 +90,16 @@ namespace Books.API.Controllers
             var bookCoversProcessAfterWaitForAll = 
                 await service.GetBookCoversProcessAfterWaitForAllAsync(id);
 
+            logger.LogInformation(
+                $"Thread when launching GetLegacyBookPages_BadCode() {Thread.CurrentThread.ManagedThreadId}.");
+            var pages = await GetLegacyBookPages_BadCode(id);
+
+
+            // e.g.:
+            // if (token.IsCancellationRequested)
+            // token.ThrowIfCancellationRequested();
+            
+
             // A book with covers.
             // a.
             //var bag = new Tuple<Entities.Book, IEnumerable<BookCover>>(
@@ -84,17 +110,22 @@ namespace Books.API.Controllers
             //(Entities.Book book, IEnumerable<BookCover> covers) bag = 
             //    (entity, bookCoversProcessAfterWaitForAll);
 
-
-            // e.g.:
-            for (int i = 0; i < 1000; i++)
-            {
-                // if (token.IsCancellationRequested)
-                // token.ThrowIfCancellationRequested();
-            }
-
             // c. NOTE: Passing multiple objects.
             // return Ok();
             return Ok((book: entity, covers: bookCoversProcessAfterWaitForAll));
+        }
+
+        private Task<int> GetLegacyBookPages_BadCode(Guid id)
+        {
+            return (Task<int>)Task.Run(() =>
+            {
+                var calc = new ComplicatedPageCalculator();
+
+                logger.LogInformation(
+                    $"Thread when running GetLegacyBookPages_BadCode() {Thread.CurrentThread.ManagedThreadId}.");
+
+                var pages = calc.CalculateBookPages(id);
+            });
         }
     }
 }

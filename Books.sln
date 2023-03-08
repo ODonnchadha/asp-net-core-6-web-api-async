@@ -5,7 +5,9 @@ VisualStudioVersion = 17.4.33403.182
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Books.API", "Books.API\Books.API.csproj", "{79749C1F-5D20-40E1-B5D9-2C21A752F778}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Books.BookCovers.API", "Books.BookCovers.API\Books.BookCovers.API.csproj", "{5512AE6A-9433-4BD4-A70F-87004E260043}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Books.BookCovers.API", "Books.BookCovers.API\Books.BookCovers.API.csproj", "{5512AE6A-9433-4BD4-A70F-87004E260043}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Books.Legacy", "Books.Legacy\Books.Legacy.csproj", "{9EE36311-BCEC-49C1-AF3A-A1EE809B3CA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{5512AE6A-9433-4BD4-A70F-87004E260043}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5512AE6A-9433-4BD4-A70F-87004E260043}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5512AE6A-9433-4BD4-A70F-87004E260043}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EE36311-BCEC-49C1-AF3A-A1EE809B3CA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EE36311-BCEC-49C1-AF3A-A1EE809B3CA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EE36311-BCEC-49C1-AF3A-A1EE809B3CA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EE36311-BCEC-49C1-AF3A-A1EE809B3CA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
